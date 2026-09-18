@@ -1,0 +1,51 @@
+# Baseline .gitignore, extended for this project.
+
+# secrets — never commit (templates like .env.example are kept)
+.env
+.env.*
+!.env.example
+.dev.vars
+.secrets
+*.pem
+id_rsa
+id_ed25519
+
+# dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# build / generated artifacts
+dist/
+build/
+.astro/
+.wrangler/
+*.log
+
+# local indexes — regenerable caches (code-search / content-vault); never commit
+.codegraph/
+.docindex/
+
+# heavy consumed inputs — context/ is committed, but bulky media is not
+context/attachments/
+
+# OS junk
+.DS_Store
+
+# generated — built from roulette.js by `npm run build` (family ADR: min.js is not committed)
+roulette.min.js
+*.tgz
+
+# agent infrastructure — this is a public repository: the agent's rules, plans, hooks and settings
+# stay on the maintainer's machine, not in the library's history
+.agents/
+.claude/
+.codex/
+.opencode/
+AGENTS.md
+CLAUDE.md
+opencode.json

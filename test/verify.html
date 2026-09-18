@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>roulette-lite — verify</title>
+<style>
+	:root { --pin-a: rgb(255, 0, 0); --pin-b: rgb(0, 128, 0); }
+	body { font: 14px/1.5 system-ui, sans-serif; margin: 24px; background: #fff; color: #111; }
+	li.pass::marker { content: '✔ '; color: #080; }
+	li.fail::marker { content: '✘ '; color: #c00; }
+	#stage { display: flex; gap: 8px; }
+	#stage > div { width: 200px; height: 200px; }
+	#verdict { font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>roulette-lite — verify</h1>
+<p>What needs a browser: parsing, computed colours, CSS motion, <code>init()</code>. The byte-level
+contracts are <code>npm test</code>. The library is loaded cache-busted — a stale cached script once
+produced a convincing false FAIL in hexagons, and would as happily produce a false PASS.</p>
+<p id="verdict">running…</p>
+<ol id="out"></ol>
+<div id="stage"><div id="a"></div><div id="b"></div><div id="c"></div></div>
+<script>
+	(function () {
+		var out = document.getElementById('out'), failed = 0, total = 0;
+		function check(name, fn) {
+			total++;
+			var li = document.createElement('li'), ok = false, note = '';
+			try { ok = fn() === true; } catch (e) { note = ' — ' + e.message; }
+			if (!ok) failed++;
+			li.className = ok ? 'pass' : 'fail';
+			li.textContent = name + note;
+			out.appendChild(li);
+		}
+		function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+		function centre(el) { var r = el.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }
+
+		var s = document.createElement('script');
+		s.src = '../roulette.js?ts=' + Date.now();
+		s.onload = run;
+		s.onerror = function () { document.getElementById('verdict').textContent = 'FAIL — library did not load'; document.title = 'FAIL'; };
+		document.head.appendChild(s);
+
+		async function run() {
+			var R = window.Roulette;
+			check('window.Roulette defines svg, palette, init', function () {
+				return typeof R.svg === 'function' && typeof R.palette === 'function' && typeof R.init === 'function';
+			});
+
+			check('every style × view × theme parses as SVG, for 30 seeds', function () {
+				var parser = new DOMParser();
+				for (var seed = 1; seed <= 30; seed++) {
+					for (var st of ['flat', 'line']) for (var view of ['tilt', 'top']) for (var theme of ['dark', 'light']) {
+						var doc = parser.parseFromString(R.svg({ seed: seed, style: st, view: view, theme: theme, motion: seed % 2 === 0 }), 'image/svg+xml');
+						if (doc.getElementsByTagName('parsererror').length) throw new Error('seed ' + seed + ' ' + st + ' ' + view);
+					}
+				}
+				return true;
+			});
+
+			var a = document.getElementById('a'), b = document.getElementById('b'), c = document.getElementById('c');
+			a.innerHTML = R.svg({ seed: 3, style: 'line', view: 'top', pocketA: 'var(--pin-a, #000)', zero: 'var(--pin-b, #000)' });
+			check('a pinned var() colour resolves to the page\'s value', function () {
+				var rings = a.querySelectorAll('circle[stroke-dasharray]');
+				return getComputedStyle(rings[0]).stroke === 'rgb(255, 0, 0)' && getComputedStyle(rings[1]).stroke === 'rgb(0, 128, 0)';
+			});
+			document.documentElement.style.setProperty('--pin-a', 'rgb(0, 0, 255)');
+			check('changing the page variable recolours it without a re-render', function () {
+				return getComputedStyle(a.querySelector('circle[stroke-dasharray]')).stroke === 'rgb(0, 0, 255)';
+			});
+
+			var hb = R.init(b, { seed: 3, motion: true, speed: 30 });
+			var hc = R.init(c, { seed: 3, motion: true, speed: 30, salt: 'second' });
+			check('init() returns null for nothing, a handle for an element', function () {
+				return R.init('#nowhere', {}) === null && hb.el === b && typeof hb.set === 'function';
+			});
+			check('two wheels with one seed and a salt share no class, keyframe or variable name', function () {
+				// whole six-character tokens only; the CSS words of that length are grammar, not names
+				var GRAMMAR = ['linear', 'rotate', 'origin', 'reduce', 'motion'];
+				var names = function (el) {
+					return (el.querySelector('style').textContent.match(/(?<![a-z0-9-])[a-z][a-z0-9]{5}(?![a-z0-9])/g) || [])
+						.filter(function (t) { return GRAMMAR.indexOf(t) < 0; });
+				};
+				var nb = names(b), nc = names(c);
+				return nb.length >= 5 && nb.every(function (t) { return nc.indexOf(t) < 0; });
+			});
+			// a reader who asked for less motion gets none: that is the contract, not a failure
+			var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			var count = function (el) { return document.getAnimations().filter(function (x) { return el.contains(x.effect.target); }).length; };
+			if (reduce) {
+				check('reduced motion is on here: neither wheel animates', function () { return count(b) === 0 && count(c) === 0; });
+			} else {
+				check('both wheels animate: rotor, crosshead, orbit, counter-orbit each', function () { return count(b) === 4 && count(c) === 4; });
+				var knobs = function () { return Array.prototype.map.call(b.querySelectorAll('g[class] circle[r="28"]'), centre); };
+				var k0 = knobs();
+				await wait(500);
+				var k1 = knobs();
+				check('the crosshead turns about its own centre', function () {
+					var mid = function (k) { return [k.reduce(function (s, p) { return s + p[0]; }, 0) / k.length, k.reduce(function (s, p) { return s + p[1]; }, 0) / k.length]; };
+					var m0 = mid(k0), m1 = mid(k1), moved = Math.hypot(k1[0][0] - k0[0][0], k1[0][1] - k0[0][1]);
+					return moved > 5 && Math.hypot(m1[0] - m0[0], m1[1] - m0[1]) < 1;
+				});
+			}
+			check('the ball stays round while it runs', function () {
+				var r = b.querySelector('circle[r="26"]').getBoundingClientRect();
+				return Math.abs(r.width - r.height) / r.width < 0.02;
+			});
+			hb.set({ brand: '#c2410c', pocketA: 'var(--pin-a, #000)' });
+			hb.set({ brand: '#16a34a' });
+			check('set() merges: a pin survives a later brand change', function () {
+				return hb.get().pocketA === 'var(--pin-a, #000)' && hb.el.innerHTML.indexOf('var(--pin-a, #000)') >= 0;
+			});
+			hb.destroy();
+			check('destroy() empties the element', function () { return b.innerHTML === ''; });
+
+			var v = document.getElementById('verdict');
+			v.textContent = failed ? 'FAIL — ' + failed + ' of ' + total : 'ALL GREEN — ' + total + ' checks';
+			v.style.color = failed ? '#c00' : '#080';
+			document.title = failed ? 'FAIL' : 'PASS';
+		}
+	})();
+</script>
+</body>
+</html>

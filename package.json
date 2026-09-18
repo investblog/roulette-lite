@@ -1,0 +1,53 @@
+{
+  "name": "roulette-lite",
+  "version": "0.1.0",
+  "description": "Procedural roulette-wheel illustrations as an SVG string. Seeded geometry, brand-aware auto-palette, line or flat, top or tilted, optional CSS spin. Zero dependencies; runs in Node at build time and in the browser.",
+  "main": "roulette.js",
+  "types": "roulette.d.ts",
+  "files": [
+    "roulette.js",
+    "roulette.min.js",
+    "roulette.d.ts",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "terser roulette.js --compress --mangle -o roulette.min.js",
+    "size": "node scripts/size.mjs",
+    "lint": "eslint .",
+    "test": "node --test \"test/*.test.mjs\"",
+    "prepack": "npm run build"
+  },
+  "config": {
+    "sizeBudget": 7168
+  },
+  "keywords": [
+    "roulette",
+    "roulette-wheel",
+    "svg",
+    "illustration",
+    "generative",
+    "generative-art",
+    "procedural",
+    "hero-background",
+    "line-art",
+    "palette",
+    "ssr",
+    "static-site",
+    "zero-dependencies",
+    "vanilla-js"
+  ],
+  "author": "301st (https://301.st)",
+  "license": "MIT",
+  "homepage": "https://github.com/investblog/roulette-lite#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/investblog/roulette-lite.git"
+  },
+  "bugs": {
+    "url": "https://github.com/investblog/roulette-lite/issues"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.4",
+    "terser": "^5.37.0"
+  }
+}
