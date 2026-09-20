@@ -18,7 +18,7 @@
     "prepack": "npm run build"
   },
   "config": {
-    "sizeBudget": 7168
+    "sizeBudget": 8192
   },
   "keywords": [
     "roulette",

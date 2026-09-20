@@ -53,3 +53,18 @@ would put identical visible text on every page that did. History: provisional 51
 the user having chosen the mark in the library over the mark in the consumer knowing it would
 cost the freeze. The rule stands: this is room for fixes, not for the next feature — the next one
 raises it again, on the record, or does not come.
+
+## Addendum — 2026-09-20: raised to 8192 B for table()
+
+`table()` (spec: Table) measured +512 B: **7518 B**. The budget moves from 7168 to **8192 B**
+(8 KiB), the user's call on the record, as the rule attached to the previous raise required.
+
+They took the round ceiling over the house pattern of measured + ~2% (which would have been
+7680 B), and the cost is stated here rather than discovered later: at 8192 the gate carries ~9%
+of headroom, so the next ~670 B of growth passes without anyone being told. The previous raises
+were deliberately tight so that any growth had to be argued for; this one is not. Until the
+budget is re-frozen, `npm run size` is a ceiling, not a tripwire — read the printed number, not
+just the exit code.
+
+History: provisional 5120 (M0), 7168 at M2 on the M1 forecast, frozen 6656 after M3, 7168 for
+`mark()`, 8192 here.

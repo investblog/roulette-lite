@@ -365,8 +365,10 @@ names, attribute names, the grammar of SVG, the shading constants — is the sam
 
 - Library: budget in `package.json` `config.sizeBudget`, measured by `npm run size` (terser in
   process + gzip level 9 — never the `gzip` CLI, whose header carries the file name). Frozen after
-  M3 at 6656 B, **raised to 7168 B for `mark()`** (measured 7006 B, ADR 009). The rule attached to
-  that raise: the next feature raises it again on the record, or does not come.
+  M3 at 6656 B, then 7168 B for `mark()`, **raised to 8192 B (8 KiB) for `table()`** (measured
+  7518 B, ADR 009). That ceiling leaves ~9% of headroom, so unlike the earlier tight budgets it
+  will not trip on the next few hundred bytes: read the number `npm run size` prints, not only its
+  exit code.
 - Output: ≤ 8 KB raw at any detail (flat + tilt + motion: ~4.7 KB).
 
 ## Promotion
