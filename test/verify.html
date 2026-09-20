@@ -44,8 +44,9 @@ produced a convincing false FAIL in hexagons, and would as happily produce a fal
 
 		async function run() {
 			var R = window.Roulette;
-			check('window.Roulette defines svg, palette, init', function () {
-				return typeof R.svg === 'function' && typeof R.palette === 'function' && typeof R.init === 'function';
+			check('window.Roulette defines svg, mark, table, palette, init', function () {
+				return typeof R.svg === 'function' && typeof R.mark === 'function' && typeof R.table === 'function'
+					&& typeof R.palette === 'function' && typeof R.init === 'function';
 			});
 
 			check('every style × view × theme parses as SVG, for 30 seeds', function () {
@@ -54,6 +55,17 @@ produced a convincing false FAIL in hexagons, and would as happily produce a fal
 					for (var st of ['flat', 'line']) for (var view of ['tilt', 'top']) for (var theme of ['dark', 'light']) {
 						var doc = parser.parseFromString(R.svg({ seed: seed, style: st, view: view, theme: theme, motion: seed % 2 === 0 }), 'image/svg+xml');
 						if (doc.getElementsByTagName('parsererror').length) throw new Error('seed ' + seed + ' ' + st + ' ' + view);
+					}
+				}
+				return true;
+			});
+
+			check('every table variant × style × theme parses as SVG, for 30 seeds', function () {
+				var parser = new DOMParser();
+				for (var seed = 1; seed <= 30; seed++) {
+					for (var v of ['european', 'american', 'auto']) for (var st of ['flat', 'line']) for (var theme of ['dark', 'light']) {
+						var doc = parser.parseFromString(R.table({ seed: seed, variant: v, style: st, theme: theme }), 'image/svg+xml');
+						if (doc.getElementsByTagName('parsererror').length) throw new Error('table seed ' + seed + ' ' + v + ' ' + st);
 					}
 				}
 				return true;
@@ -68,6 +80,16 @@ produced a convincing false FAIL in hexagons, and would as happily produce a fal
 			document.documentElement.style.setProperty('--pin-a', 'rgb(0, 0, 255)');
 			check('changing the page variable recolours it without a re-render', function () {
 				return getComputedStyle(a.querySelector('circle[stroke-dasharray]')).stroke === 'rgb(0, 0, 255)';
+			});
+
+			// the table paints its own felt, so the var() pin has to reach a fill as well as a stroke
+			a.innerHTML = R.table({ seed: 3, felt: 'var(--pin-a, #000)' });
+			check('the felt follows a pinned var() like any other role', function () {
+				return getComputedStyle(a.querySelector('rect')).fill === 'rgb(0, 0, 255)';
+			});
+			check('a light theme draws the table in contours, a dark one in fills', function () {
+				var fills = function (t) { return (R.table({ seed: 4, theme: t }).match(/fill="#/g) || []).length; };
+				return fills('light') < fills('dark');
 			});
 
 			var hb = R.init(b, { seed: 3, motion: true, speed: 30 });

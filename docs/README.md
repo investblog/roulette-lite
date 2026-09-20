@@ -10,9 +10,11 @@ project: roulette-lite
 Docs for developers and agents. `index.html` is the verification surface, `test/` the gate.
 Contract-first: change the doc here **before** the code, then code.
 
-**Status (2026-09-18): v0.1.0 — released to npm.** This line is
-kept true at every milestone; a spec that still says "SPEC" after shipping (hexagons) is the
-thing it guards against.
+**Status (2026-09-20): v0.1.0 built and tagged-ready, not yet on npm** — the bootstrap publish
+is held by an npm account freeze until 2026-09-21 17:46 UTC (RELEASING.md, the fourth failure
+mode). `table()` is in progress for 0.2.0 on `feat/table`. This line is kept true at every
+milestone; a spec that still says "SPEC" after shipping (hexagons) is the thing it guards against
+— and one that claims a release it has not made is the same fault pointing the other way.
 
 ## The pitch, in one paragraph
 
@@ -241,6 +243,55 @@ diamond), and sometimes the crosshead's two bars — seen from above, `viewBox="
 | `size` | — | width/height; otherwise viewBox only |
 | `title` | — | as in `svg()` |
 
+## Table — the betting layout
+
+`Roulette.table(opts)` draws the other half of the subject: the baize layout the wheel sits
+beside. A page-width band (viewBox `0 0 1400 500`, 14 cells × 5), from the same roles, for a hero
+background the wheel can sit on or beside. Adding it moves no byte of `svg()` or `mark()` — the
+recorded outputs are the proof, as they were for `mark()`.
+
+- **The grid is the real one.** 12 columns × 3 rows, `n = 3·col + (3 − row)`, so the top row runs
+  3, 6, 9 … 36 and the bottom 1, 4, 7 … 34. A zero cell spans the three rows on the left;
+  `american` splits it into 0 and 00. Right of the grid, three column-bet boxes; under it three
+  dozens; under those six outside boxes.
+- **Red and black keep the wheel's irregular pattern**, never a checkerboard:
+  `red = (n < 11 || (n > 18 && n < 29)) ? n is odd : n is even` — 1, 3, 5, 7, 9, 12, 14, 16, 18,
+  19 … A regular alternation is the one thing that would read as a chessboard instead of a
+  roulette table, and it is what makes the layout recognisable with no digits on it.
+- **No digits** — the same call as the number ring (ADR 009): a font dependency, ~8 px glyphs at
+  hero size, and identical visible text on every page that used it. The layout is read by its
+  proportions and its red/black pattern.
+- **The felt is painted here**, unlike the wheel, which never paints its background: the cloth is
+  part of the subject, not the page behind it. It defaults to the brand's derived `background` —
+  the calm choice that never fights the wheel — and takes a pin like any role
+  (`felt: '#0a3d2c'` for classic baize, `felt: false` for none).
+- **Styles mirror `svg()`**: `flat` fills each cell and rules the grid in `metal`; `line` marks
+  the red cells and the zero and leaves the rest to the metal rule — pocketB outlines would vanish
+  into a dark felt, and the wheel's own line style colours only the red and the zero too.
+- **A light theme defaults to `line`.** Filled cells over a white page stop reading as the site's
+  palette and start fighting it — the wheel taught this first, where dark took either style and
+  white took only contours. A table is a far larger area of flat colour than a wheel, so the
+  default follows the theme; an explicit `style` always wins.
+- **Seeded from its own `table:*` streams** — corner radius, the mark in the RED/BLACK boxes, the
+  grid weight tier. One seed draws a wheel and its matching table, and neither moves the other.
+- **No ids, no defs, no style** — as with `mark()`, so any number of tables and wheels share a
+  page without collision, and there is nothing to sign (ADR 005).
+- **`view: 'tilt'` is reserved** and draws as `top`: the wheel's projection matrix would carry the
+  layout for the price of one attribute, but it needs a framing pass of its own, and the size
+  budget gets the deciding vote (ADR 009).
+
+| Option | Default | What |
+|---|---|---|
+| `seed`, `brand`, `theme` | as `svg()` | |
+| `variant` | `'european'` | `'european'` \| `'american'` \| `'auto'` (seeded) — one zero cell or two |
+| `style` | `'flat'`; `'line'` under `theme: 'light'` | `'line'` \| `'flat'` |
+| `felt` | `'auto'` | the cloth: any CSS colour, or `false` for none |
+| `pocketA pocketB zero metal` | `'auto'` | any CSS colour, as in `svg()` |
+| `weight` | `1` | grid line multiplier |
+| `view` | `'top'` | `'tilt'` reserved (draws as `top`) |
+| `size` | — | width; height follows the 14:5 viewBox |
+| `title` | — | as in `svg()` |
+
 ## Options
 
 | Option | Default | What |
@@ -269,6 +320,7 @@ diamond), and sometimes the crosshead's two bars — seen from above, `viewBox="
 ```js
 Roulette.svg(opts)                 // → string. Pure; Node and browser.
 Roulette.mark(opts)                // → string. The emblem: logo glyph or favicon. Pure.
+Roulette.table(opts)               // → string. The betting layout, 14:5. Pure.
 Roulette.palette(brand, {theme})   // → {role: hex, …, background, halo}
 Roulette.init(el, opts)            // browser → {el, get(), set(opts), destroy()}
 ```
@@ -312,8 +364,9 @@ names, attribute names, the grammar of SVG, the shading constants — is the sam
 ## Performance and size
 
 - Library: budget in `package.json` `config.sizeBudget`, measured by `npm run size` (terser in
-  process + gzip level 9 — never the `gzip` CLI, whose header carries the file name). **Frozen
-  after M3 at 6656 B** (measured 6438 B + 3%, ADR 009).
+  process + gzip level 9 — never the `gzip` CLI, whose header carries the file name). Frozen after
+  M3 at 6656 B, **raised to 7168 B for `mark()`** (measured 7006 B, ADR 009). The rule attached to
+  that raise: the next feature raises it again on the record, or does not come.
 - Output: ≤ 8 KB raw at any detail (flat + tilt + motion: ~4.7 KB).
 
 ## Promotion

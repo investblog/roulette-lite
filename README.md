@@ -113,6 +113,22 @@ Roulette.mark({ seed: 'example.com', brand: '#7c5cff', badge: true }); // a favi
 Seeded from streams of its own, so a site's mark and its hero wheel share a seed without moving
 each other. No ids or styles inside — any number of marks can sit on one page.
 
+## The table: a hero band the wheel stands on
+
+```js
+Roulette.table({ seed: 'example.com', brand: '#7c5cff' });      // the betting layout, 14:5
+Roulette.table({ seed: 'example.com', felt: '#0a3d2c' });       // classic baize instead of the brand's
+Roulette.table({ seed: 'example.com', felt: false });           // no cloth: the page shows through
+```
+
+The real layout — 12 × 3 with the zero across three rows (`variant: 'american'` splits it into 0
+and 00), dozens, column bets, the six outside boxes — in the same roles as the wheel. There are no
+digits on it: at hero size they would be a font dependency and the same visible text on every page
+that used it, so the layout is carried by its proportions and by the canonical red/black pattern,
+which is irregular, not a checkerboard. Under `theme: 'light'` it defaults to the `line` style,
+where only the red cells and the zero take colour — filled cells over a white page fight the
+site's palette rather than joining it.
+
 ## Motion
 
 `motion: true` turns the wheel slowly one way and runs the ball the other, as CSS inside the SVG

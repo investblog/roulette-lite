@@ -3,6 +3,20 @@
 From here on, any change to the output bytes for the same (seed, options) is a minor version with
 a line here saying what changed (ADR 010).
 
+## 0.2.0 — unreleased
+
+- `Roulette.table(opts)` — the betting layout as an SVG string, 14:5, for a hero band the wheel
+  can stand on. The real grid (12 × 3 with the zero across three rows, `american` splitting it in
+  two), the canonical irregular red/black pattern, dozens, column bets and the six outside boxes.
+  No digits, by the same call as the number ring (ADR 009).
+- The layout paints its own felt — the brand's derived background by default, any CSS colour as a
+  pin, `felt: false` for none. It is the one drawing in the library that paints a background: the
+  cloth is part of the subject.
+- Under `theme: 'light'` the table defaults to the `line` style: filled cells over a white page
+  stop reading as the site's palette and start fighting it. An explicit `style` still wins.
+- Seeded from its own `table:*` streams, so `svg()` and `mark()` are untouched: 1330 recorded
+  renders across 120 seeds are byte-identical to 0.1.0 (ADR 010).
+
 ## 0.1.0 — 2026-09-18
 
 First release.

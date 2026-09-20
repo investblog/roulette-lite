@@ -573,6 +573,58 @@
 		plate + el('g', ['transform', 'rotate(' + n(S('mark:turn')() * 360 / N, 2) + ' 32 32)'], g));
 	}
 
+	// ── table: the betting layout, from its own streams ────────────────────
+
+	// Recognisable with no digit on it, but only while the red/black pattern is the real one:
+	// odd is red below 11 and from 19 to 28, even is red in the two bands between. A regular
+	// alternation would read as a chessboard (spec: Table).
+	function table(opts) {
+		var o = opts || {}, S = streams(o.seed == null ? 1 : o.seed), r = roles(o.brand, o.theme);
+		// Light themes take the line style unless asked otherwise: on white the filled cells stop
+		// reading as the site's palette and start fighting it — the lesson the wheel taught first.
+		var flat = o.style ? o.style !== 'line' : o.theme !== 'light';
+		var amer = o.variant === 'american' || (o.variant === 'auto' && S('table:variant')() < 0.5);
+		var col = function (role) {
+			var pin = o[role];
+			return pin != null && pin !== 'auto' ? esc(pin) : toHex(r[role]);
+		};
+		var metal = col('metal'), rx = S('table:round')() < 0.5 ? null : 6;
+		var wt = n((S('table:rule')() < 0.5 ? 2.5 : 4) * (o.weight == null ? 1 : o.weight), 2);
+		var paint = function (c) { return ['fill', flat ? c : 'none', 'stroke', flat ? null : c, 'stroke-width', flat ? null : wt]; };
+		// one cell: filled with a rule round it in flat, its own outline and nothing else in line
+		var box = function (x, y, w, h, c) {
+			return el('rect', ['x', x, 'y', y, 'width', w, 'height', h, 'rx', rx,
+				'fill', c && flat ? c : 'none', 'stroke', c && !flat ? c : metal, 'stroke-width', wt]);
+		};
+		var i, j, g = o.felt === false ? '' : el('rect', ['width', 1400, 'height', 500,
+			'fill', o.felt != null && o.felt !== 'auto' ? esc(o.felt) : toHex(r.background)]);
+		for (i = 0; i < 12; i++) {
+			for (j = 0; j < 3; j++) {
+				var v = 3 * i + 3 - j, isRed = (v < 11 || (v > 18 && v < 29)) === (v % 2 === 1);
+				// line style marks the red and the zero and leaves the rest to the metal rule —
+				// the wheel's rule, and pocketB outlines would vanish into a dark felt anyway
+				g += box(100 + 100 * i, 100 * j, 100, 100, isRed ? col('pocketA') : flat ? col('pocketB') : null);
+			}
+		}
+		var zero = col('zero');
+		g += amer ? box(0, 0, 100, 150, zero) + box(0, 150, 100, 150, zero) : box(0, 0, 100, 300, zero);
+		for (j = 0; j < 3; j++) g += box(1300, 100 * j, 100, 100);
+		for (i = 0; i < 3; i++) g += box(100 + 400 * i, 300, 400, 100);
+		var dia = S('table:mark')() < 0.5;
+		for (i = 0; i < 6; i++) {
+			g += box(100 + 200 * i, 400, 200, 100);
+			// the two boxes a layout marks with a shape instead of a word: red and black
+			if (i === 2 || i === 3) {
+				var cx = 200 + 200 * i, c = col(i === 2 ? 'pocketA' : 'pocketB');
+				g += dia ? el('path', ['d', 'M' + cx + ' 422L' + (cx + 28) + ' 450L' + cx + ' 478L' + (cx - 28) + ' 450Z'].concat(paint(c)))
+					: el('rect', ['x', cx - 34, 'y', 434, 'width', 68, 'height', 32, 'rx', rx].concat(paint(c)));
+			}
+		}
+		var a11y = o.title ? ['role', 'img', 'aria-label', esc(o.title)] : ['aria-hidden', 'true'];
+		return el('svg', ['xmlns', NS, 'viewBox', '0 0 1400 500',
+			'width', o.size == null ? null : n(o.size), 'height', o.size == null ? null : n(o.size * 5 / 14)].concat(a11y), g);
+	}
+
 	// Browser convenience: draw into an element and keep it drawn. Pins stay pinned across set()
 	// because options merge; a moving wheel sleeps off screen through its pause variable — the
 	// sibling rule, with no animation loop of its own to stop.
@@ -609,5 +661,5 @@
 		};
 	}
 
-	return { svg: svg, mark: mark, palette: palette, init: init };
+	return { svg: svg, mark: mark, table: table, palette: palette, init: init };
 });

@@ -63,6 +63,27 @@ declare namespace Roulette {
 		title?: string;
 	}
 
+	interface TableOptions {
+		seed?: number | string;
+		brand?: string | string[];
+		theme?: 'dark' | 'light';
+		variant?: 'european' | 'american' | 'auto';
+		/** Defaults to 'flat', or to 'line' under theme: 'light'. */
+		style?: 'line' | 'flat';
+		/** The cloth: any CSS colour, 'auto' for the brand's background, false for none. */
+		felt?: string | false;
+		pocketA?: string;
+		pocketB?: string;
+		zero?: string;
+		metal?: string;
+		weight?: number;
+		/** 'tilt' is reserved and draws as 'top'. */
+		view?: 'top' | 'tilt';
+		/** Width; the height follows the 14:5 viewBox. */
+		size?: number;
+		title?: string;
+	}
+
 	interface Palette {
 		pocketA: string;
 		pocketB: string;
@@ -90,6 +111,8 @@ declare const Roulette: {
 	svg(opts?: Roulette.Options): string;
 	/** Pure: the wheel as an emblem, 64×64 — a logo glyph or a favicon. */
 	mark(opts?: Roulette.MarkOptions): string;
+	/** Pure: the betting layout as an SVG string, 14:5 — a hero band the wheel can sit on. */
+	table(opts?: Roulette.TableOptions): string;
 	palette(brand?: string | string[], opts?: { theme?: 'dark' | 'light' }): Roulette.Palette;
 	/** Browser only. Returns null when the selector matches nothing. */
 	init(target: string | Element, opts?: Roulette.Options): Roulette.Handle | null;

@@ -24,6 +24,12 @@
 	#stage.sheet { grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); align-items: start; gap: 16px; }
 	#stage.sheet figure { margin: 0; text-align: center; color: var(--muted); font-size: 12px; cursor: pointer; }
 	#stage.sheet svg { width: 100%; height: auto; display: block; }
+	#stage.table { display: block; align-content: start; }
+	/* #stage sets place-items:center, and Chrome applies justify-items to block containers too — the band would shrink to the SVG default 300px without this */
+	#stage.table .band { position: relative; width: 100%; }
+	#stage.table .band > svg { width: 100%; height: auto; }
+	#stage.table .wheel { position: absolute; right: 3%; top: 50%; transform: translateY(-50%); width: 28%; }
+	#stage.table .wheel svg { width: 100%; height: auto; }
 	.meta { color: var(--muted); font-size: 12px; }
 	.marks { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
 	.marks span { display: inline-block; }
@@ -40,7 +46,7 @@
 		<h1>roulette-lite</h1>
 		<label>seed <input type="text" data-k="seed" value="1"></label>
 		<div class="row"><button id="prev">‹</button><button id="roll">roll</button><button id="next">›</button></div>
-		<label>show <select id="mode"><option value="one">one wheel</option><option value="sheet">contact sheet (24)</option></select></label>
+		<label>show <select id="mode"><option value="one">one wheel</option><option value="sheet">contact sheet (24)</option><option value="table">wheel on the table</option></select></label>
 		<label>theme <select data-k="theme"><option>dark</option><option>light</option></select></label>
 		<label class="brand">brand <span class="row"><input type="color" data-b="0" value="#00abf3"><input type="color" data-b="1" value="#d6af3c"><input type="color" data-b="2" value="#a91455"><button id="spintax" title="spintax triad">↺</button></span></label>
 		<label>style <select data-k="style"><option>flat</option><option>line</option></select></label>
@@ -79,6 +85,11 @@
 					html += '<figure data-seed="' + s + '">' + Roulette.svg(Object.assign({}, o, { seed: s })) + '<figcaption>seed ' + s + '</figcaption></figure>';
 				}
 				stage.innerHTML = html;
+			} else if (mode.value === 'table') {
+				// the pair as a page would use it: the layout as the band, the wheel standing on it
+				stage.className = 'table';
+				stage.innerHTML = '<div class="band">' + Roulette.table(o) + '<div class="wheel">' + Roulette.svg(o) + '</div></div>';
+				document.getElementById('bytes').textContent = Roulette.table(o).length + ' bytes of table SVG';
 			} else {
 				stage.className = '';
 				var out = Roulette.svg(o);
