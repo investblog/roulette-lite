@@ -15,6 +15,14 @@ test('svg() output is a contract: these renders are byte-identical to the record
 	for (const [opts, hash] of Object.entries(golden)) assert.equal(sha1(Roulette.svg(JSON.parse(opts))), hash, opts);
 });
 
+test('mark() output is a contract too: the same tripwire svg() has (ADR 010)', () => {
+	// Recorded 2026-09-20 with table(), and checked equal to the output before table() existed
+	// (1330 renders across 120 seeds). mark() had no golden of its own until then — the next
+	// feature should trip this file, not a one-off comparison someone remembers to run.
+	const golden = JSON.parse(readFileSync(new URL('./fixtures/mark-golden.json', import.meta.url), 'utf8'));
+	for (const [opts, hash] of Object.entries(golden)) assert.equal(sha1(Roulette.mark(JSON.parse(opts))), hash, opts);
+});
+
 test('a mark is deterministic and seeded: same seed same bytes, and every variant appears', () => {
 	assert.equal(Roulette.mark({ seed: 'a.example', badge: true }), Roulette.mark({ seed: 'a.example', badge: true }));
 	assert.notEqual(Roulette.mark({ seed: 'a.example' }), Roulette.mark({ seed: 'b.example' }));
