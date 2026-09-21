@@ -3,7 +3,7 @@
 From here on, any change to the output bytes for the same (seed, options) is a minor version with
 a line here saying what changed (ADR 010).
 
-## 0.2.0 — unreleased
+## 0.2.0 — 2026-09-21
 
 - `Roulette.table(opts)` — the betting layout as an SVG string, 14:5, for a hero band the wheel
   can stand on. The real grid (12 × 3 with the zero across three rows, `american` splitting it in
