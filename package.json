@@ -1,6 +1,6 @@
 {
   "name": "roulette-lite",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Procedural roulette-wheel illustrations as an SVG string. Seeded geometry, brand-aware auto-palette, line or flat, top or tilted, optional CSS spin. Zero dependencies; runs in Node at build time and in the browser.",
   "main": "roulette.js",
   "types": "roulette.d.ts",
