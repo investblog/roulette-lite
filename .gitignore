@@ -50,3 +50,8 @@ AGENTS.md
 CLAUDE.md
 opencode.json
 .mcp.json
+
+# stray screenshots: the browser tool writes them into the working directory by default, and a
+# `git add -A` swept two into a commit before this line existed
+*.png
+.playwright-mcp/
