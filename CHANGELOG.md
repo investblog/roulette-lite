@@ -16,6 +16,9 @@ a line here saying what changed (ADR 010).
   stop reading as the site's palette and start fighting it. An explicit `style` still wins.
 - Seeded from its own `table:*` streams, so `svg()` and `mark()` are untouched: 1330 recorded
   renders across 120 seeds are byte-identical to 0.1.0 (ADR 010).
+- 7580 B min+gzip against the 8192 B budget raised for `table()` (ADR 009). The README's size
+  line moves with it: a number in prose goes stale the moment a feature lands, and this one
+  described 0.1.0 while sitting on the branch that changes it.
 
 ## 0.1.0 — 2026-09-18
 

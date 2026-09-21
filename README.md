@@ -5,7 +5,7 @@ browser — so a static site gets its hero art with no script on the page. **`se
 geometry, **`brand`** spins the colours: red, black and a green zero stay a roulette's, and your
 brand fills them. Flat colour with volume or line art, seen from above or in three-quarter view,
 with an optional spin that stops for readers who asked for less motion. Zero dependencies,
-~6.8 KB gzipped.
+7.4 KB gzipped.
 
 [![npm](https://img.shields.io/npm/v/roulette-lite.svg)](https://www.npmjs.com/package/roulette-lite)
 [![license](https://img.shields.io/npm/l/roulette-lite.svg)](LICENSE)
