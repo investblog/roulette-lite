@@ -589,8 +589,7 @@
 			return pin != null && pin !== 'auto' ? esc(pin) : toHex(r[role]);
 		};
 		var metal = col('metal'), rx = S('table:round')() < 0.5 ? null : 6;
-		var wt = n((S('table:rule')() < 0.5 ? 2.5 : 4) * (o.weight == null ? 1 : o.weight), 2);
-		var paint = function (c) { return ['fill', flat ? c : 'none', 'stroke', flat ? null : c, 'stroke-width', flat ? null : wt]; };
+		var wn = (S('table:rule')() < 0.5 ? 2.5 : 4) * (o.weight == null ? 1 : o.weight), wt = n(wn, 2);
 		// one cell: filled with a rule round it in flat, its own outline and nothing else in line
 		var box = function (x, y, w, h, c) {
 			return el('rect', ['x', x, 'y', y, 'width', w, 'height', h, 'rx', rx,
@@ -598,31 +597,46 @@
 		};
 		var i, j, g = o.felt === false ? '' : el('rect', ['width', 1400, 'height', 500,
 			'fill', o.felt != null && o.felt !== 'auto' ? esc(o.felt) : toHex(r.background)]);
+		// Two passes, metal rules first and the coloured marks on top. Every cell strokes all four
+		// sides centred on the edge it shares with its neighbour, so whichever is drawn later wins
+		// it outright: in one pass a red cell kept an edge only where the next cell was also red,
+		// and 24 of the 18 red cells' edges came out metal. The red boxes read as L-fragments.
+		var rules = '', marks = '';
 		for (i = 0; i < 12; i++) {
 			for (j = 0; j < 3; j++) {
 				var v = 3 * i + 3 - j, isRed = (v < 11 || (v > 18 && v < 29)) === (v % 2 === 1);
 				// line style marks the red and the zero and leaves the rest to the metal rule —
 				// the wheel's rule, and pocketB outlines would vanish into a dark felt anyway
-				g += box(100 + 100 * i, 100 * j, 100, 100, isRed ? col('pocketA') : flat ? col('pocketB') : null);
+				var cell = box(100 + 100 * i, 100 * j, 100, 100, isRed ? col('pocketA') : flat ? col('pocketB') : null);
+				if (isRed) marks += cell; else rules += cell;
 			}
 		}
 		var zero = col('zero');
-		g += amer ? box(0, 0, 100, 150, zero) + box(0, 150, 100, 150, zero) : box(0, 0, 100, 300, zero);
-		for (j = 0; j < 3; j++) g += box(1300, 100 * j, 100, 100);
-		for (i = 0; i < 3; i++) g += box(100 + 400 * i, 300, 400, 100);
+		marks += amer ? box(0, 0, 100, 150, zero) + box(0, 150, 100, 150, zero) : box(0, 0, 100, 300, zero);
+		for (j = 0; j < 3; j++) rules += box(1300, 100 * j, 100, 100);
+		for (i = 0; i < 3; i++) rules += box(100 + 400 * i, 300, 400, 100);
 		var dia = S('table:mark')() < 0.5;
 		for (i = 0; i < 6; i++) {
-			g += box(100 + 200 * i, 400, 200, 100);
+			rules += box(100 + 200 * i, 400, 200, 100);
 			// the two boxes a layout marks with a shape instead of a word: red and black
 			if (i === 2 || i === 3) {
-				var cx = 200 + 200 * i, c = col(i === 2 ? 'pocketA' : 'pocketB');
-				g += dia ? el('path', ['d', 'M' + cx + ' 422L' + (cx + 28) + ' 450L' + cx + ' 478L' + (cx - 28) + ' 450Z'].concat(paint(c)))
-					: el('rect', ['x', cx - 34, 'y', 434, 'width', 68, 'height', 32, 'rx', rx].concat(paint(c)));
+				var isR = i === 2, cx = 200 + 200 * i, c = col(isR ? 'pocketA' : 'pocketB');
+				// the black mark takes the metal rule its cells already take: pocketB on the felt
+				// measures 1.19:1, so without it the pair reads as one marked box and one empty
+				var mp = ['fill', flat ? c : 'none', 'stroke', flat || !isR ? metal : c, 'stroke-width', wt];
+				marks += dia ? el('path', ['d', 'M' + cx + ' 422L' + (cx + 28) + ' 450L' + cx + ' 478L' + (cx - 28) + ' 450Z'].concat(mp))
+					: el('rect', ['x', cx - 34, 'y', 434, 'width', 68, 'height', 32, 'rx', rx].concat(mp));
 			}
 		}
+		g += rules + marks;
 		var a11y = o.title ? ['role', 'img', 'aria-label', esc(o.title)] : ['aria-hidden', 'true'];
-		return el('svg', ['xmlns', NS, 'viewBox', '0 0 1400 500',
-			'width', o.size == null ? null : n(o.size), 'height', o.size == null ? null : n(o.size * 5 / 14)].concat(a11y), g);
+		// The box is padded by half a rule. Every outer box sits flush on the boundary and its
+		// stroke is centred there, so without the pad the whole perimeter renders at half weight
+		// while every interior rule renders at full — five units lost at weight 2.5. This is what
+		// svg() does with its own reach; the layout grid stays exactly 100 per cell.
+		var half = wn / 2, vb = [-half, -half, 1400 + wn, 500 + wn].map(function (v) { return n(v, 2); }).join(' ');
+		return el('svg', ['xmlns', NS, 'viewBox', vb, 'width', o.size == null ? null : n(o.size),
+			'height', o.size == null ? null : n(o.size * (500 + wn) / (1400 + wn))].concat(a11y), g);
 	}
 
 	// Browser convenience: draw into an element and keep it drawn. Pins stay pinned across set()
